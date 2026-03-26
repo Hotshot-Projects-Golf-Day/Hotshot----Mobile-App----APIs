@@ -1,0 +1,328 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:upd8s/core/data/location_data.dart';
+import 'package:upd8s/core/helper/app_validations.dart';
+
+import 'package:upd8s/core/widgets/app_background.dart';
+import 'package:upd8s/core/widgets/custom_app_bar.dart';
+import 'package:upd8s/core/widgets/custom_text_field.dart';
+import 'package:upd8s/core/widgets/app_button.dart';
+import 'package:upd8s/routes/app_router.dart';
+
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final validator = Validator(errorText: '');
+
+  String selectedRole = "School";
+  bool acceptedTerms = false;
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
+
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  String? selectedProvince;
+  String? selectedCity;
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    mobileController.dispose();
+
+    addressController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: AppBackground(
+          child: Form(
+            key: _formKey,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                FocusScope.of(context).unfocus();
+              },
+              child: Column(
+                children: [
+                  const CustomAppBarWidget(
+                    title: "Create Account",
+                    showBackButton: true,
+                  ),
+
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 10,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// ROLE
+                            const Text(
+                              "Select your role",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            Row(
+                              children: [
+                                _roleButton("School"),
+                                _roleButton("Parents"),
+                                _roleButton("Advertiser"),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// FULL NAME
+                            CustomTextField(
+                              heading: "Full Name",
+                              labelText: "Enter full name",
+                              controller: nameController,
+                              validator: validator.fullName,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// EMAIL
+                            CustomTextField(
+                              heading: "Email Address",
+                              labelText: "Enter your email",
+                              controller: emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: validator.email,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// MOBILE
+                            CustomMobileTextField(
+                              heading: "Mobile Number",
+                              controller: mobileController,
+                              isRequired: true,
+                              validator: validator.mobileInternational,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// PROVINCE + CITY
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: CustomDropdownField(
+                                    heading: "Province",
+                                    hintText: "Select province",
+                                    value: selectedProvince,
+                                    items: LocationData.provinces,
+                                    validator: validator.notEmpty,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        selectedProvince = val;
+                                        selectedCity = null;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: CustomDropdownField(
+                                    heading: "City",
+                                    hintText: "Select city",
+                                    value: selectedCity,
+                                    items: selectedProvince == null
+                                        ? []
+                                        : LocationData.getCities(
+                                            selectedProvince!,
+                                          ),
+                                    validator: validator.notEmpty,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        selectedCity = val;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            /// ADDRESS
+                            CustomTextField(
+                              heading: "Address",
+                              labelText: "Enter your address",
+                              controller: addressController,
+                              validator: validator.notEmpty,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// PASSWORD
+                            CustomTextField(
+                              heading: "Password",
+                              labelText: "Enter your password",
+                              controller: passwordController,
+                              isPassword: true,
+                              validator: validator.password,
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            /// TERMS
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Checkbox(
+                                  value: acceptedTerms,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      acceptedTerms = val ?? false;
+                                    });
+                                  },
+                                ),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: const TextStyle(
+                                        fontFamily: 'Aptos',
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 13,
+                                        height: 1.4, // 140% line-height
+                                        letterSpacing: -0.065, // -0.5%
+                                        color: Colors.black,
+                                      ),
+                                      children: [
+                                        const TextSpan(text: "I accept all "),
+                                        TextSpan(
+                                          text: "Terms and Conditions",
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                            // decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              context.pushNamed(
+                                                AppRoute.terms.name,
+                                              );
+                                            },
+                                        ),
+                                        const TextSpan(text: " and "),
+                                        TextSpan(
+                                          text: "Privacy Policy",
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+
+                                            // decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              context.pushNamed(
+                                                AppRoute.privacy.name,
+                                              );
+                                            },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            /// BUTTON
+                            AppButton(
+                              text: "Signup",
+                              onPressed: () {
+                                print(selectedCity);
+                                print(selectedProvince);
+                                if (!_formKey.currentState!.validate()) return;
+
+                                if (!acceptedTerms) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Please accept terms and conditions",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                context.goNamed(AppRoute.home.name);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// ROLE BUTTON
+  Widget _roleButton(String role) {
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            selectedRole = role;
+          });
+        },
+        child: Row(
+          children: [
+            Radio<String>(
+              value: role,
+              groupValue: selectedRole,
+              onChanged: (value) {
+                setState(() {
+                  selectedRole = value!;
+                });
+              },
+            ),
+            Expanded(
+              child: Text(
+                role,
+                style: const TextStyle(
+                  fontFamily: 'Aptos',
+                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                  height: 1.4,
+                  letterSpacing: -0.15,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

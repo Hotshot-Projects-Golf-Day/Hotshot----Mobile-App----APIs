@@ -1,0 +1,16 @@
+{
+  "provinces": [
+    {
+      "name": "Uttar Pradesh",
+      "cities": ["Ghaziabad", "Noida", "Lucknow", "Kanpur"]
+    },
+    {
+      "name": "Delhi",
+      "cities": ["New Delhi", "Dwarka", "Rohini", "Saket"]
+    },
+    {
+      "name": "Maharashtra",
+      "cities": ["Mumbai", "Pune", "Nagpur"]
+    }
+  ]
+}
