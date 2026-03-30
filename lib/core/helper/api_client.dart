@@ -1,13 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:upd8s/core/helper/endpoint.dart';
 import 'package:upd8s/core/helper/secure_storage.dart';
 import 'package:upd8s/routes/app_router.dart';
-
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-
-
-
 
 class ApiClient {
   ApiClient._internal() {
@@ -47,27 +43,13 @@ class ApiClient {
     RequestInterceptorHandler handler,
   ) async {
     final useToken = options.extra['useToken'] ?? true;
-    final useTempToken = options.extra['useTempToken'] ?? false;
 
-    String? token;
-
-    if (useTempToken) {
-      token = await SecureStorage.instance.getTempSignupToken();
-    } else if (useToken) {
-      token = await SecureStorage.instance.getToken();
+    if (useToken && !_isAuthEndpoint(options.path)) {
+      final token = await SecureStorage.instance.getToken();
+      if (token != null) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
     }
-
-    if (token != null && !_isAuthEndpoint(options.path)) {
-      options.headers["Authorization"] = "Bearer $token";
-    }
-
-    print('════════════════════════════════════════');
-    print('[REQUEST] ${options.method} ${options.uri}');
-    print('Headers: ${options.headers}');
-    print('Token: ${token ?? "No token"}');
-    print('Body: ${options.data}');
-    print('Extras: ${options.extra}');
-    print('════════════════════════════════════════');
 
     handler.next(options);
   }
@@ -88,7 +70,7 @@ class ApiClient {
       if (_isRefreshing) {
         _retryQueue.add(() async {
           final newToken = await SecureStorage.instance.getToken();
-          requestOptions.headers["Authorization"] = "Bearer $newToken";
+          requestOptions.headers['Authorization'] = 'Bearer $newToken';
           await dio.fetch(requestOptions);
         });
         return;
@@ -99,12 +81,13 @@ class ApiClient {
       try {
         final refreshed = await _refreshToken();
         if (!refreshed) {
-          _logout();
+          await _logout();
+          handler.next(error);
           return;
         }
 
         final newToken = await SecureStorage.instance.getToken();
-        requestOptions.headers["Authorization"] = "Bearer $newToken";
+        requestOptions.headers['Authorization'] = 'Bearer $newToken';
 
         final response = await dio.fetch(requestOptions);
         handler.resolve(response);
@@ -114,10 +97,12 @@ class ApiClient {
         }
         _retryQueue.clear();
       } catch (_) {
-        _logout();
+        await _logout();
+        handler.next(error);
       } finally {
         _isRefreshing = false;
       }
+
       return;
     }
 
@@ -134,11 +119,11 @@ class ApiClient {
     try {
       final response = await dio.post(
         Endpoints.refreshToken,
-        data: {"refreshToken": refreshToken},
-        options: Options(headers: {"Authorization": null}),
+        data: {'refreshToken': refreshToken},
+        options: Options(headers: {'Authorization': null}),
       );
 
-      final newToken = response.data["data"]["token"];
+      final newToken = response.data['data']['accessToken'];
       await SecureStorage.instance.saveToken(newToken);
       return true;
     } catch (_) {
@@ -146,19 +131,21 @@ class ApiClient {
     }
   }
 
+  // =========================
+  // LOGOUT
+  // =========================
+  Future<void> _logout() async {
+    await SecureStorage.instance.clearAll();
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      context.go(AppRoute.login.path);
+    }
+  }
+
   bool _isAuthEndpoint(String path) {
     return path.contains(Endpoints.login) ||
         path.contains(Endpoints.register) ||
         path.contains(Endpoints.refreshToken);
-  }
-
-  void _logout() async {
-    await SecureStorage.instance.clearAll();
-
-    final context = navigatorKey.currentContext;
-    if (context != null) {
-      // context.go(AppRoute.login.path);
-    }
   }
 
   // =========================

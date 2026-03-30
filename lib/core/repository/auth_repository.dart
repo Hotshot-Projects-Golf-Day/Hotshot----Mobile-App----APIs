@@ -5,121 +5,102 @@ import 'package:upd8s/core/helper/endpoint.dart';
 class AuthRepository {
   final ApiClient _apiClient = ApiClient.instance;
 
+  // =====================
+  // REGISTER
+  // =====================
+  Future<Response> register({
+    required String role,
+    required String name,
+    required String email,
+    required String mobile,
+    required String province,
+    required String city,
+    required String address,
+    required String password,
+    required bool consentAccepted,
+  }) async {
+    final body = {
+      "role": role.toUpperCase(),
+      "name": name,
+      "email": email,
+      "mobile": mobile,
+      "province": province,
+      "city": city,
+      "address": address,
+      "password": password,
+      "consentAccepted": consentAccepted,
+    };
+    return await _apiClient.post(Endpoints.register, data: body, useToken: false);
+  }
+
+  // =====================
+  // LOGIN
+  // =====================
   Future<Response> login({
-    required String userName,
+    required String email,
     required String password,
   }) async {
-    final body = {"userName": userName, "password": password};
-
+    final body = {"email": email, "password": password};
     return await _apiClient.post(Endpoints.login, data: body, useToken: false);
   }
 
-  Future<Response> register({
-    String? profileImage,
-    required String firstName,
-    required String lastName,
-    required String userName,
-    required String nrcNumber,
-    required String mobileNumber,
-    required String viberNumber,
-    String? email,
-    required String dateOfBirth,
-    required String gender,
-    required String password,
-    required bool canTravel,
-    required bool isExperienced,
-    String? role,
-    bool? isActive,
-    String? city,
-    String? town,
-    String? street,
-    String? state,
-    String? zipCode,
-  }) async {
-    final Map<String, dynamic> body = {
-      "firstName": firstName,
-      "lastName": lastName,
-      "userName": userName,
-      "nrcNumber": nrcNumber,
-      "mobileNumber": mobileNumber,
-      "viberNumber": viberNumber,
-      "dateOfBirth": dateOfBirth,
-      "gender": gender,
-      "password": password,
-      "canTravel": canTravel,
-      "isExperienced": isExperienced,
-    };
-
-    if (profileImage?.isNotEmpty == true) body["profileImage"] = profileImage;
-    if (email?.isNotEmpty == true) body["email"] = email;
-
-    if (isActive != null) body["isActive"] = isActive;
-    if (city?.isNotEmpty == true) body["city"] = city;
-    if (town?.isNotEmpty == true) body["town"] = town;
-    if (street?.isNotEmpty == true) body["street"] = street;
-    if (state?.isNotEmpty == true) body["state"] = state;
-    if (zipCode?.isNotEmpty == true) body["zipCode"] = zipCode;
-
-    return await _apiClient.post(
-      Endpoints.register,
-      data: body,
-      useToken: false,
-    );
+  // =====================
+  // REFRESH TOKEN
+  // =====================
+  Future<Response> refreshToken({required String refreshToken}) async {
+    final body = {"refreshToken": refreshToken};
+    return await _apiClient.post(Endpoints.refreshToken, data: body, useToken: false);
   }
 
+  // =====================
+  // VERIFY OTP (Email verification after register)
+  // =====================
   Future<Response> verifyOtp({
-    required String mobileNumber,
+    required String email,
     required String otp,
   }) async {
-    final body = {"mobileNumber": mobileNumber, "otp": otp};
-
-    return await _apiClient.post(
-      Endpoints.verifyOtp,
-      data: body,
-      useToken: false,
-    );
+    final body = {"email": email, "otp": otp};
+    return await _apiClient.post(Endpoints.verifyOtp, data: body, useToken: false);
   }
 
-  Future<Response> resendOtp({required String mobileNumber}) {
-    return _apiClient.post(
-      Endpoints.resendOtp,
-      data: {"mobileNumber": mobileNumber},
-      useToken: false,
-    );
+  // =====================
+  // RESEND VERIFICATION OTP
+  // =====================
+  Future<Response> resendVerificationOtp({required String email}) async {
+    final body = {"email": email};
+    return await _apiClient.post(Endpoints.resendVerificationOtp, data: body, useToken: false);
   }
 
-  // ======================
+  // =====================
   // FORGOT PASSWORD - SEND OTP
-  // ======================
+  // =====================
   Future<Response> forgotPassword({required String email}) async {
     final body = {"email": email};
-
-    return await _apiClient.post(
-      Endpoints.forgotPassword,
-      data: body,
-      useToken: false,
-    );
+    return await _apiClient.post(Endpoints.forgotPassword, data: body, useToken: false);
   }
 
-  // ======================
+  // =====================
+  // RESEND RESET OTP
+  // =====================
+  Future<Response> resendResetOtp({required String email}) async {
+    final body = {"email": email};
+    return await _apiClient.post(Endpoints.resendResetOtp, data: body, useToken: false);
+  }
+
+  // =====================
   // FORGOT PASSWORD - VERIFY OTP
-  // ======================
+  // =====================
   Future<Response> verifyForgotPasswordOtp({
     required String email,
     required String otp,
   }) async {
     final body = {"email": email, "otp": otp};
-
-    return await _apiClient.post(
-      Endpoints.verifyForgotPasswordOtp,
-      data: body,
-      useToken: false,
-    );
+    return await _apiClient.post(Endpoints.verifyForgotPasswordOtp, data: body, useToken: false);
   }
 
-  // ======================
-  // RESET PASSWORD
-  // ======================
+  // =====================
+  // RESET PASSWORD WITH OTP (Forgot flow)
+  // =====================
   Future<Response> resetPassword({
     required String email,
     required String otp,
@@ -132,11 +113,22 @@ class AuthRepository {
       "newPassword": newPassword,
       "confirmPassword": confirmPassword,
     };
+    return await _apiClient.post(Endpoints.resetPassword, data: body, useToken: false);
+  }
 
-    return await _apiClient.post(
-      Endpoints.resetPassword,
-      data: body,
-      useToken: false,
-    );
+  // =====================
+  // CHANGE PASSWORD (Authenticated)
+  // =====================
+  Future<Response> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    final body = {
+      "currentPassword": currentPassword,
+      "newPassword": newPassword,
+      "confirmPassword": confirmPassword,
+    };
+    return await _apiClient.post(Endpoints.changePassword, data: body, useToken: true);
   }
 }

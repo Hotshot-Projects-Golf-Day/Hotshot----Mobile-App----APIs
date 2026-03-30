@@ -3,14 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:upd8s/core/constants/dimensions.dart';
-import 'package:upd8s/core/helper/route_observer.dart';
 import 'package:upd8s/core/localization/localization_bloc.dart';
 import 'package:upd8s/core/theme/app_theme.dart';
 import 'package:upd8s/core/theme/theme_bloc.dart';
 import 'package:upd8s/l10n/app_localizations.dart';
 import 'package:upd8s/routes/app_router.dart';
-import 'package:upd8s/core/localization/localization_bloc.dart';
-import 'package:upd8s/core/theme/theme_bloc.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
