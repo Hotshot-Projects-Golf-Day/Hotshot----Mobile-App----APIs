@@ -32,7 +32,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController mobileController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController otpController = TextEditingController();
 
   String? selectedProvince;
   String? selectedCity;
@@ -44,7 +43,6 @@ class _SignupScreenState extends State<SignupScreen> {
     mobileController.dispose();
     addressController.dispose();
     passwordController.dispose();
-    otpController.dispose();
     super.dispose();
   }
 
@@ -60,8 +58,13 @@ class _SignupScreenState extends State<SignupScreen> {
           if (state.errorMessage?.isNotEmpty == true) {
             AppSnackbar.showError(context, state.errorMessage!);
           }
-          if (state.status == AuthStatus.otpVerified) {
-            context.goNamed(AppRoute.login.name);
+          // Navigate to OTP screen, passing the registered email
+          if (state.status == AuthStatus.registerSuccess) {
+            print('DEBUG registeredEmail: "${state.registeredEmail}"');
+            context.pushNamed(
+              AppRoute.otpVerify.name,
+              extra: state.registeredEmail,
+            );
           }
         },
         child: BlocBuilder<AuthCubit, AuthState>(
@@ -91,7 +94,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    /// ROLE
+                                    // ── ROLE SELECTION ──────────────────────
                                     const Text(
                                       "Select your role",
                                       style: TextStyle(
@@ -103,13 +106,13 @@ class _SignupScreenState extends State<SignupScreen> {
                                     Row(
                                       children: [
                                         _roleButton("School"),
-                                        _roleButton("Parents"),
-                                        _roleButton("Advertiser"),
+                                        _roleButton("Parent"),
+                                        _roleButton("Club"),
                                       ],
                                     ),
                                     const SizedBox(height: 16),
 
-                                    /// FULL NAME
+                                    // ── FULL NAME ───────────────────────────
                                     CustomTextField(
                                       heading: "Full Name",
                                       labelText: "Enter full name",
@@ -118,7 +121,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                     const SizedBox(height: 16),
 
-                                    /// EMAIL
+                                    // ── EMAIL ───────────────────────────────
                                     CustomTextField(
                                       heading: "Email Address",
                                       labelText: "Enter your email",
@@ -128,7 +131,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                     const SizedBox(height: 16),
 
-                                    /// MOBILE
+                                    // ── MOBILE ──────────────────────────────
                                     CustomMobileTextField(
                                       heading: "Mobile Number",
                                       controller: mobileController,
@@ -137,7 +140,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                     const SizedBox(height: 16),
 
-                                    /// PROVINCE + CITY
+                                    // ── PROVINCE + CITY ─────────────────────
                                     Row(
                                       children: [
                                         Expanded(
@@ -178,7 +181,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                     const SizedBox(height: 16),
 
-                                    /// ADDRESS
+                                    // ── ADDRESS ─────────────────────────────
                                     CustomTextField(
                                       heading: "Address",
                                       labelText: "Enter your address",
@@ -187,7 +190,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                     const SizedBox(height: 16),
 
-                                    /// PASSWORD
+                                    // ── PASSWORD ────────────────────────────
                                     CustomTextField(
                                       heading: "Password",
                                       labelText: "Enter your password",
@@ -197,34 +200,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                     const SizedBox(height: 16),
 
-                                    /// OTP FIELD — shown only after successful registration
-                                    if (state.status ==
-                                        AuthStatus.registerSuccess) ...[
-                                      CustomTextField(
-                                        heading: "OTP",
-                                        labelText:
-                                            "Enter OTP sent to your email",
-                                        controller: otpController,
-                                        keyboardType: TextInputType.number,
-                                        validator: validator.notEmpty,
-                                      ),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: TextButton(
-                                          onPressed: state.isLoading
-                                              ? null
-                                              : () =>
-                                                    cubit.resendVerificationOtp(
-                                                      email: state
-                                                          .registeredEmail!,
-                                                    ),
-                                          child: const Text("Resend OTP"),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                    ],
-
-                                    /// TERMS
+                                    // ── TERMS & CONDITIONS ──────────────────
                                     Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
@@ -289,13 +265,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                     const SizedBox(height: 20),
 
-                                    /// BUTTON
+                                    // ── SIGNUP BUTTON ───────────────────────
                                     AppButton(
-                                      text:
-                                          state.status ==
-                                              AuthStatus.registerSuccess
-                                          ? "Verify OTP"
-                                          : "Signup",
+                                      text: "Signup",
                                       isLoading: state.isLoading,
                                       onPressed: () {
                                         if (!_formKey.currentState!.validate())
@@ -307,27 +279,18 @@ class _SignupScreenState extends State<SignupScreen> {
                                           );
                                           return;
                                         }
-                                        if (state.status !=
-                                            AuthStatus.registerSuccess) {
-                                          cubit.register(
-                                            role: selectedRole,
-                                            name: nameController.text.trim(),
-                                            email: emailController.text.trim(),
-                                            mobile: mobileController.text
-                                                .trim(),
-                                            province: selectedProvince ?? '',
-                                            city: selectedCity ?? '',
-                                            address: addressController.text
-                                                .trim(),
-                                            password: passwordController.text
-                                                .trim(),
-                                          );
-                                        } else {
-                                          cubit.verifySignupOtp(
-                                            email: state.registeredEmail!,
-                                            otp: otpController.text.trim(),
-                                          );
-                                        }
+                                        cubit.register(
+                                          role: selectedRole,
+                                          name: nameController.text.trim(),
+                                          email: emailController.text.trim(),
+                                          mobile: mobileController.text.trim(),
+                                          province: selectedProvince ?? '',
+                                          city: selectedCity ?? '',
+                                          address: addressController.text
+                                              .trim(),
+                                          password: passwordController.text
+                                              .trim(),
+                                        );
                                       },
                                     ),
                                   ],

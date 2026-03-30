@@ -116,19 +116,5 @@ class AuthRepository {
     return await _apiClient.post(Endpoints.resetPassword, data: body, useToken: false);
   }
 
-  // =====================
-  // CHANGE PASSWORD (Authenticated)
-  // =====================
-  Future<Response> changePassword({
-    required String currentPassword,
-    required String newPassword,
-    required String confirmPassword,
-  }) async {
-    final body = {
-      "currentPassword": currentPassword,
-      "newPassword": newPassword,
-      "confirmPassword": confirmPassword,
-    };
-    return await _apiClient.post(Endpoints.changePassword, data: body, useToken: true);
-  }
+
 }

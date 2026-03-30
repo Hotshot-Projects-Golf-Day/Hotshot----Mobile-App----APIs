@@ -36,11 +36,10 @@ class Endpoints {
   static const String login = "/auth/login";
   static const String refreshToken = "/auth/refresh-token";
   static const String verifyOtp = "/auth/verify-otp";
-  static const String resendVerificationOtp = "/auth/resend-verification-otp";
+  static const String resendVerificationOtp = "/auth/resend-reset-otp";
   static const String forgotPassword = "/auth/forgot-password";
   static const String resendResetOtp = "/auth/resend-reset-otp";
-  static const String verifyForgotPasswordOtp =
-      "/auth/verify-otp"; // same endpoint, reused
+  static const String verifyForgotPasswordOtp = "/auth/verify-reset-otp";
   static const String resetPassword = "/auth/reset-password";
   static const String changePassword = "/auth/change-password";
 }

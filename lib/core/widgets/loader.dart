@@ -1,33 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class AppLoader extends StatelessWidget {
-  final bool isVisible;
-
-  const AppLoader({super.key, required this.isVisible});
+  const AppLoader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (!isVisible) return const SizedBox();
-
-    return Container(
-      color: Colors.black.withOpacity(0.4),
-      child: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const SizedBox(
-              width: 90,
-              height: 90,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                color: Colors.white,
-              ),
-            ),
-
-            Image.asset("assets/images/loader_logo.png", width: 45, height: 45),
-          ],
+    return Positioned.fill(
+      child: AbsorbPointer(
+        absorbing: true,
+        child: Container(
+          color: Colors.black.withOpacity(0.2),
+          child: const Center(child: _LoaderBody()),
         ),
       ),
+    );
+  }
+}
+
+class _LoaderBody extends StatelessWidget {
+  const _LoaderBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return LoadingAnimationWidget.twistingDots(
+      leftDotColor: Colors.black,
+      rightDotColor: Colors.pink,
+      size: 50,
     );
   }
 }

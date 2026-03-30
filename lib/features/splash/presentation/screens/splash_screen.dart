@@ -26,11 +26,11 @@ class _SplashScreenState extends State<SplashScreen> {
     final cubit = context.read<SplashCubit>();
     cubit.checkAppStatus();
 
-    _controller = VideoPlayerController.asset(AppAssets.splashVideo)
-      ..initialize().then((_) {
-        setState(() {});
-        _controller.play();
-      });
+    // _controller = VideoPlayerController.asset(AppAssets.splashVideo)
+    //   ..initialize().then((_) {
+    //     setState(() {});
+    //     _controller.play();
+    //   });
 
     _controller = VideoPlayerController.asset(AppAssets.splashVideo)
       ..initialize().then((_) {
@@ -55,7 +55,11 @@ class _SplashScreenState extends State<SplashScreen> {
       body: BlocListener<SplashCubit, SplashState>(
         listener: (context, state) {
           if (!state.isLoading && state.videoFinished) {
-            context.go(AppRoute.login.path);
+            if (state.hasToken) {
+              context.go(AppRoute.home.path);
+            } else {
+              context.go(AppRoute.login.path);
+            }
           }
         },
         child: _controller.value.isInitialized

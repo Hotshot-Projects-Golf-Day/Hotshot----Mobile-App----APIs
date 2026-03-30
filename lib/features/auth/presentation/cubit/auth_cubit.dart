@@ -371,45 +371,6 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // =====================
-  // CHANGE PASSWORD (Authenticated)
-  // =====================
-  Future<void> changePassword({
-    required String currentPassword,
-    required String newPassword,
-    required String confirmPassword,
-  }) async {
-    try {
-      emit(state.copyWith(status: AuthStatus.loading));
-
-      final response = await _repo.changePassword(
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-        confirmPassword: confirmPassword,
-      );
-      final message =
-          response.data?["message"] ?? "Password changed successfully.";
-
-      emit(
-        state.copyWith(
-          status: AuthStatus.passwordChanged,
-          successMessage: message,
-        ),
-      );
-    } on DioException catch (e) {
-      emit(
-        state.copyWith(
-          status: AuthStatus.failure,
-          errorMessage: _extractMessage(e, "Failed to change password."),
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
-      );
-    }
-  }
-
-  // =====================
   // RESET TO INITIAL
   // =====================
   void resetState() {

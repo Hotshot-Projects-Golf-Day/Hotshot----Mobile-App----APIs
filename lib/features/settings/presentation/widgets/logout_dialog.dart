@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:upd8s/core/constants/app_images.dart';
+import 'package:upd8s/core/helper/secure_storage.dart';
 import 'package:upd8s/core/theme/app_colors.dart';
 import 'package:upd8s/core/widgets/app_button.dart';
 import 'package:upd8s/routes/app_router.dart';
@@ -39,8 +40,10 @@ void showLogoutDialog(BuildContext context) {
 
               AppButton(
                 text: 'Yes',
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(dialogContext);
+
+                  await SecureStorage.instance.clearAll();
 
                   context.goNamed(AppRoute.login.name);
                 },

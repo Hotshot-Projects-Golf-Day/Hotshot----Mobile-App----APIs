@@ -18,6 +18,7 @@ class CreatePostScreen extends StatefulWidget {
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _urlController = TextEditingController();
   bool isFirstSelected = true;
 
   String? selectedDuration;
@@ -75,19 +76,32 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           SizedBox(height: 20),
                           isFirstSelected
                               ? SizedBox.shrink()
-                              : CustomDropdownField(
-                                  hintText: "Select duration",
-                                  value: selectedDuration,
-                                  items: AdsDurationData.durations,
-                                  onChanged: (val) {
-                                    setState(() => selectedDuration = val);
-                                  },
-                                  validator: (val) {
-                                    if (val == null || val.isEmpty) {
-                                      return "Please select duration";
-                                    }
-                                    return null;
-                                  },
+                              : Column(
+                                  children: [
+                                    CustomDropdownField(
+                                      heading: 'Duration',
+                                      hintText: "Select duration",
+                                      value: selectedDuration,
+                                      items: AdsDurationData.durations,
+                                      onChanged: (val) {
+                                        setState(() => selectedDuration = val);
+                                      },
+                                      validator: (val) {
+                                        if (val == null || val.isEmpty) {
+                                          return "Please select duration";
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 20),
+
+                                    CustomTextField(
+                                      heading: "Enter Advertisement URl",
+                                      controller: _urlController,
+                                      labelText: 'Enter Advertisement URL',
+                                      keyboardType: TextInputType.url,
+                                    ),
+                                  ],
                                 ),
                         ],
                       ),
