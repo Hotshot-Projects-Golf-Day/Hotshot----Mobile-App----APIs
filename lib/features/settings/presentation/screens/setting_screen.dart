@@ -106,7 +106,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         icon: AppAssets.policies,
 
                         onTap: () {
-                          context.pushNamed(AppRoute.privacy.name);
+                          context.pushNamed(AppRoute.policies.name);
                         },
                       ),
 

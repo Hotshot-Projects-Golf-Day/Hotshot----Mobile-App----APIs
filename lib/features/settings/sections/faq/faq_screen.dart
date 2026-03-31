@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:upd8s/core/widgets/app_background.dart';
 import 'package:upd8s/core/widgets/custom_app_bar.dart';
+import 'package:upd8s/features/settings/cubit/account_cubit.dart';
+import 'package:upd8s/features/settings/cubit/account_state.dart';
+import 'package:upd8s/features/settings/data/faq_model.dart';
+
 
 class FaqScreen extends StatefulWidget {
   const FaqScreen({super.key});
@@ -10,72 +15,72 @@ class FaqScreen extends StatefulWidget {
 }
 
 class _FaqScreenState extends State<FaqScreen> {
-  int expandedIndex = 0;
+  int expandedIndex = -1;
 
-  final List<Map<String, String>> faqList = [
-    {
-      "question": "What is this platform?",
-      "answer":
-          "This platform helps students, teachers, and parents manage school-related activities such as assignments, schedules, and communication.",
-    },
-    {
-      "question": "What payment methods are accepted?",
-      "answer":
-          "We accept credit cards, debit cards, UPI, and other supported digital payment methods for school fees and services.",
-    },
-    {
-      "question": "Is there a minimum fee amount?",
-      "answer":
-          "No, there is no minimum amount required for making payments such as fees or other school-related charges.",
-    },
-    {
-      "question": "How can I track my assignments or progress?",
-      "answer":
-          "You can track assignments, grades, and progress in the student dashboard section of the app.",
-    },
-    {
-      "question": "What is your refund policy?",
-      "answer":
-          "Refunds depend on school policies and the timing of cancellation or withdrawal.",
-    },
-    {
-      "question": "Are there any additional charges?",
-      "answer":
-          "Additional charges may apply depending on extracurricular activities, transportation, or special services.",
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    context.read<AccountCubit>().getFaqs();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: AppBackground(
-          child: Column(
-            children: [
-              const CustomAppBarWidget(title: "FAQ’s", showBackButton: true),
+    return BlocBuilder<AccountCubit, AccountState>(
+      builder: (context, state) {
+        return Scaffold(
+          body: SafeArea(
+            child: AppBackground(
+              child: Column(
+                children: [
+                  const CustomAppBarWidget(title: "FAQ's", showBackButton: true),
 
-              const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: faqList.length,
-                  itemBuilder: (context, index) {
-                    final isExpanded = expandedIndex == index;
-
-                    return _faqTile(
-                      index: index,
-                      question: faqList[index]['question']!,
-                      answer: faqList[index]['answer']!,
-                      isExpanded: isExpanded,
-                    );
-                  },
-                ),
+                  Expanded(child: _buildBody(state)),
+                ],
               ),
-            ],
+            ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(AccountState state) {
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.status == AccountStatus.failure) {
+      return Center(
+        child: Text(
+          state.errorMessage ?? "Failed to load FAQs.",
+          style: const TextStyle(color: Colors.black54),
         ),
-      ),
+      );
+    }
+
+    if (state.faqs.isEmpty) {
+      return const Center(
+        child: Text(
+          "No FAQs available.",
+          style: TextStyle(color: Colors.black54),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: state.faqs.length,
+      itemBuilder: (context, index) {
+        final FaqModel faq = state.faqs[index];
+        return _faqTile(
+          index: index,
+          question: faq.question,
+          answer: faq.answer,
+          isExpanded: expandedIndex == index,
+        );
+      },
     );
   }
 

@@ -1,15 +1,20 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:upd8s/core/helper/secure_storage.dart';
+import 'package:upd8s/core/repository/account_repository.dart';
 import 'package:upd8s/core/repository/auth_repository.dart';
 import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _repo;
+  final AccountRepository _accountRepo;
 
-  AuthCubit({AuthRepository? authRepository})
-    : _repo = authRepository ?? AuthRepository(),
-      super(const AuthState());
+  AuthCubit({
+    AuthRepository? authRepository,
+    AccountRepository? accountRepository,
+  }) : _repo = authRepository ?? AuthRepository(),
+       _accountRepo = accountRepository ?? AccountRepository(), // ← NEW
+       super(const AuthState());
 
   // =====================
   // REGISTER
@@ -361,6 +366,32 @@ class AuthCubit extends Cubit<AuthState> {
         state.copyWith(
           status: AuthStatus.failure,
           errorMessage: _extractMessage(e, "Failed to reset password."),
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
+      );
+    }
+  }
+
+  // =====================
+  // GET POLICIES
+  // =====================
+  Future<void> getPolicies() async {
+    try {
+      emit(state.copyWith(status: AuthStatus.loading));
+
+      final policies = await _accountRepo.getPolicies();
+
+      emit(
+        state.copyWith(status: AuthStatus.policiesLoaded, policies: policies),
+      );
+    } on DioException catch (e) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: _extractMessage(e, "Failed to load policies."),
         ),
       );
     } catch (e) {

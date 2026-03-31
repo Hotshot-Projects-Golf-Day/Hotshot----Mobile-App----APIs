@@ -32,6 +32,7 @@ class AppConfig {
 class Endpoints {
   static const String baseUrl = "http://82.112.237.18:4008/api/v1";
 
+  // Auth
   static const String register = "/auth/register";
   static const String login = "/auth/login";
   static const String refreshToken = "/auth/refresh-token";
@@ -42,4 +43,10 @@ class Endpoints {
   static const String verifyForgotPasswordOtp = "/auth/verify-reset-otp";
   static const String resetPassword = "/auth/reset-password";
   static const String changePassword = "/auth/change-password";
+
+  static const String helpCenter = "/help-center";
+  static const String faqs = "/content/faqs";
+  static const String policies = "/content/policies";
+
+    static const String createPost = "/content/policies";
 }

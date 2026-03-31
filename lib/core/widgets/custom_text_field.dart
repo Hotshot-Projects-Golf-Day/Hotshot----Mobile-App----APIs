@@ -168,15 +168,15 @@ class CustomMobileTextField extends StatefulWidget {
 
 class _CustomMobileTextFieldState extends State<CustomMobileTextField> {
   Country selectedCountry = Country(
-    phoneCode: '95',
-    countryCode: 'MM',
+    phoneCode: '27',
+    countryCode: 'ZA',
     e164Sc: 0,
     geographic: true,
     level: 1,
-    name: 'Myanmar',
-    example: '912345678',
-    displayName: 'Myanmar',
-    displayNameNoCountryCode: 'Myanmar',
+    name: 'South Africa',
+    example: '711234567',
+    displayName: 'South Africa',
+    displayNameNoCountryCode: 'South Africa',
     e164Key: '',
   );
 

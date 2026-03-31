@@ -28,7 +28,8 @@ class AccountCubit extends Cubit<AccountState> {
       );
 
       final message =
-          response.data?["message"] ?? "Password changed successfully.";
+          response.data?["message"] as String? ??
+          "Password changed successfully.";
 
       emit(
         state.copyWith(
@@ -57,6 +58,106 @@ class AccountCubit extends Cubit<AccountState> {
   }
 
   // =====================
+  // HELP CENTER
+  // =====================
+  Future<void> submitHelpCenter({
+    required String title,
+    required String description,
+  }) async {
+    try {
+      emit(state.copyWith(status: AccountStatus.loading));
+
+      final message = await _repo.submitHelpCenter(
+        title: title,
+        description: description,
+      );
+
+      emit(
+        state.copyWith(
+          status: AccountStatus.helpCenterSuccess,
+          successMessage: message,
+        ),
+      );
+    } on DioException catch (e) {
+      emit(
+        state.copyWith(
+          status: AccountStatus.failure,
+          errorMessage: _extractMessage(
+            e,
+            "Failed to submit query. Please try again.",
+          ),
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: AccountStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  // =====================
+  // FAQs
+  // =====================
+  Future<void> getFaqs() async {
+    try {
+      emit(state.copyWith(status: AccountStatus.loading));
+
+      final faqs = await _repo.getFaqs();
+
+      emit(state.copyWith(status: AccountStatus.faqsLoaded, faqs: faqs));
+    } on DioException catch (e) {
+      emit(
+        state.copyWith(
+          status: AccountStatus.failure,
+          errorMessage: _extractMessage(e, "Failed to load FAQs."),
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: AccountStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  // =====================
+  // POLICIES
+  // =====================
+  Future<void> getPolicies() async {
+    try {
+      emit(state.copyWith(status: AccountStatus.loading));
+
+      final policies = await _repo.getPolicies();
+
+      emit(
+        state.copyWith(
+          status: AccountStatus.policiesLoaded,
+          policies: policies,
+        ),
+      );
+    } on DioException catch (e) {
+      emit(
+        state.copyWith(
+          status: AccountStatus.failure,
+          errorMessage: _extractMessage(e, "Failed to load policies."),
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: AccountStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  // =====================
   // RESET TO INITIAL
   // =====================
   void resetState() {
@@ -67,8 +168,8 @@ class AccountCubit extends Cubit<AccountState> {
   // HELPER
   // =====================
   String _extractMessage(DioException e, String fallback) {
-    return e.response?.data?["message"] ??
-        e.response?.data?["data"]?["message"] ??
+    return e.response?.data?["message"] as String? ??
+        e.response?.data?["data"]?["message"] as String? ??
         fallback;
   }
 }

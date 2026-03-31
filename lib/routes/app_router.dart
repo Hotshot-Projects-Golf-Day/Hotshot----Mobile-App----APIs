@@ -2,8 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:upd8s/core/data/legal_text.dart';
-
+import 'package:upd8s/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:upd8s/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:upd8s/features/auth/presentation/screens/legal_content_screen.dart';
 import 'package:upd8s/features/auth/presentation/screens/login_screen.dart';
@@ -18,6 +17,7 @@ import 'package:upd8s/features/settings/sections/change_password/change_password
 import 'package:upd8s/features/settings/sections/faq/faq_screen.dart';
 import 'package:upd8s/features/settings/sections/help_center/help_center_screen.dart';
 import 'package:upd8s/features/settings/sections/membership_plans/membership_plans_screen.dart';
+import 'package:upd8s/features/settings/sections/policy/policies_screen.dart';
 import 'package:upd8s/features/splash/presentation/cubit/splash_cubit.dart';
 import 'package:upd8s/features/splash/presentation/screens/splash_screen.dart';
 
@@ -30,6 +30,7 @@ enum AppRoute {
   otpVerify(path: '/otp-verify', name: 'otp-verify'),
   home(path: '/home', name: 'home'),
   forgotPassword(path: '/forgot-password', name: 'forgot-password'),
+  // Used in auth flow (signup/login) — static hardcoded content
   terms(path: '/terms', name: 'terms'),
   privacy(path: '/privacy', name: 'privacy'),
   profile(path: '/profile', name: 'profile'),
@@ -38,6 +39,8 @@ enum AppRoute {
   helpCenter(path: '/helpCenter', name: 'helpCenter'),
   faq(path: '/faq', name: 'faq'),
   membership(path: '/membership', name: 'membership'),
+  // Used in settings — API-driven content, inside AccountCubit shell
+  policies(path: '/policies', name: 'policies'),
   createPost(path: '/createPost', name: 'createPost');
 
   final String path;
@@ -47,8 +50,11 @@ enum AppRoute {
 }
 
 /// A shell route that provides a single [AccountCubit] instance
-/// to all account-related screens (settings, change password, help, faq, membership).
+/// to all account-related screens (settings, change password, help, faq, membership, policies).
 final _accountShellKey = GlobalKey<NavigatorState>();
+
+// ── Legal shell key ──────────────────────────────────────────────────────────
+final _legalShellKey = GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: navigatorKey,
@@ -58,12 +64,10 @@ final GoRouter appRouter = GoRouter(
     // ─── Auth / public routes ────────────────────────────────────────────────
     AppGoRoute(
       info: AppRoute.splash,
-      builder: (context, state) {
-        return BlocProvider(
-          create: (_) => SplashCubit()..checkAppStatus(),
-          child: const SplashScreen(),
-        );
-      },
+      builder: (context, state) => BlocProvider(
+        create: (_) => SplashCubit()..checkAppStatus(),
+        child: const SplashScreen(),
+      ),
     ),
     AppGoRoute(
       info: AppRoute.login,
@@ -85,28 +89,7 @@ final GoRouter appRouter = GoRouter(
         return MaterialPage(child: OtpVerifyScreen(email: email));
       },
     ),
-    AppGoRoute(
-      info: AppRoute.terms,
-      pageBuilder: (context, state) => const MaterialPage(
-        child: LegalContentScreen(
-          title: "Terms and Conditions",
-          title2: "Privacy Policy",
-          content: LegalText.terms,
-          content2: LegalText.privacy,
-        ),
-      ),
-    ),
-    AppGoRoute(
-      info: AppRoute.privacy,
-      pageBuilder: (context, state) => const MaterialPage(
-        child: LegalContentScreen(
-          title: "Privacy Policy",
-          title2: "Terms and Conditions",
-          content: LegalText.privacy,
-          content2: LegalText.terms,
-        ),
-      ),
-    ),
+
     GoRoute(
       name: AppRoute.profile.name,
       path: '/profile',
@@ -125,7 +108,27 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => MaterialPage(child: CreatePostScreen()),
     ),
 
-    // ─── Account shell — single AccountCubit shared across these routes ──────
+    // ─── Legal shell — provides AuthCubit to privacy & terms routes ──────── //
+    ShellRoute(
+      navigatorKey: _legalShellKey,
+      builder: (context, state, child) {
+        return BlocProvider(create: (_) => AuthCubit(), child: child);
+      },
+      routes: [
+        AppGoRoute(
+          info: AppRoute.privacy,
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: LegalContentScreen()),
+        ),
+        AppGoRoute(
+          info: AppRoute.terms,
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: LegalContentScreen()),
+        ),
+      ],
+    ),
+
+    // ─── Account shell — provides AccountCubit ───────────────────────────────
     ShellRoute(
       navigatorKey: _accountShellKey,
       builder: (context, state, child) {
@@ -154,6 +157,11 @@ final GoRouter appRouter = GoRouter(
           info: AppRoute.membership,
           pageBuilder: (context, state) =>
               MaterialPage(child: MembershipPlanScreen()),
+        ),
+        AppGoRoute(
+          info: AppRoute.policies,
+          pageBuilder: (context, state) =>
+              MaterialPage(child: PoliciesScreen()),
         ),
       ],
     ),
